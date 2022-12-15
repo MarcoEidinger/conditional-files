@@ -1,22 +1,22 @@
 @testable import conditional_files
 import XCTest
 
-final class OSCommandTests: XCTestCase {
+final class NotOSCommandTests: XCTestCase {
     func testBasicInsert() {
         let input = ""
         let expectedOutput = """
-        #if os(iOS)
+        #if !os(iOS)
         #endif
         """
 
         let stub = FileManagerMock()
         stub.originalFileContent = input
 
-        var command = OSCommand()
+        var command = NotOSCommand()
         command.processor = CommandProcessor(fileHandler: stub)
         command.operatingSystems = [.ios]
         command.options = PathFileOptions()
-        command.options.paths = ["fakePath"]
+        command.options.paths = ["fakePatht"]
         command.undo = false
 
         command.run()
@@ -24,42 +24,22 @@ final class OSCommandTests: XCTestCase {
         XCTAssertEqual(stub.updatedFileContent, expectedOutput)
     }
 
-    func testUndoOnNothing() {
-        let input = "n/a"
-
-        let stub = FileManagerMock()
-        stub.originalFileContent = input
-
-        var command = OSCommand()
-        command.processor = CommandProcessor(fileHandler: stub)
-        command.operatingSystems = [.ios]
-        command.options = PathFileOptions()
-        command.options.paths = ["fakePath"]
-        command.undo = true
-
-        command.run()
-
-        XCTAssertEqual(stub.updatedFileContent, nil)
-    }
-
-    func testUndo() {
-        let input = """
-        #if os(iOS)
-        // code
+    func testMultipleInsert() {
+        let input = ""
+        let expectedOutput = """
+        #if !os(iOS) && !os(watchOS)
         #endif
         """
 
-        let expectedOutput = "// code"
-
         let stub = FileManagerMock()
         stub.originalFileContent = input
 
-        var command = OSCommand()
+        var command = NotOSCommand()
         command.processor = CommandProcessor(fileHandler: stub)
-        command.operatingSystems = [.ios]
+        command.operatingSystems = [.ios, .watchos]
         command.options = PathFileOptions()
         command.options.paths = ["fakePath"]
-        command.undo = true
+        command.undo = false
 
         command.run()
 

@@ -11,7 +11,7 @@ enum OperatingSystem: String, EnumerableFlag {
 }
 
 struct PathFileOptions: ParsableArguments {
-    @Argument(help: "List of paths to the files or directories containing swift sources")
+    @Argument(help: "List of paths to the files or directories to be processed. You can use a single dot (.) to process all files in the current folder and its sub hierarchy.")
     var paths = [String]()
 }
 
@@ -19,7 +19,20 @@ struct PathFileOptions: ParsableArguments {
 struct CLI: ParsableCommand {
     static var configuration = CommandConfiguration(
         commandName: "conditional-files",
-        abstract: "A utility to add compiler directives for the whole file content.",
+        abstract: """
+        A command-line tool intended to insert a conditional compilation statement in multiple Swift files at once. Generic being able to process multiple files and insert any text at the top and the bottom of a file.
+        """,
+        discussion: """
+        Example command: conditional-files os --ios .
+        Result: Will process all files in the current folder and its sub directories.
+
+        Example command: conditional-files os --ios test.swift
+        Result: will touch only test.swift file in current directory.
+
+        #if os(iOS) // <== inserted
+        // code
+        #endif      // <== inserted
+        """,
         subcommands: [
             OSCommand.self,
             NotOSCommand.self,
@@ -40,31 +53,12 @@ struct OSCommand: ParsableCommand {
     @Flag
     var operatingSystems: [OperatingSystem] = []
 
-    @Flag var undo: Bool = false
+    @Flag(help: "Remove the compiler directive if it exists in the file(s)")
+    var undo: Bool = false
 
     @OptionGroup var options: PathFileOptions
 
     var processor: CommandProcessor = .init()
-
-    var topLine: String {
-        var ifCommand = ""
-        if operatingSystems.count > 1 {
-            for (index, os) in operatingSystems.enumerated() {
-                if index == 0 {
-                    ifCommand = "#if os(\(os.rawValue)) "
-                } else {
-                    ifCommand = ifCommand + "|| os(\(os.rawValue)) "
-                }
-            }
-        } else {
-            ifCommand = "#if os(\(operatingSystems.first!.rawValue))"
-        }
-        return ifCommand
-    }
-
-    var bottomLine: String {
-        return "#endif"
-    }
 
     mutating func run() {
         if operatingSystems.isEmpty {
@@ -72,7 +66,9 @@ struct OSCommand: ParsableCommand {
             return
         }
 
-        processor.execute(with: options.paths, firstLine: topLine, lastLine: bottomLine, undo: undo)
+        let cd = CompilerDirective(type: .if_os(operatingSystems))
+
+        processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: undo)
     }
 }
 
@@ -85,31 +81,12 @@ struct NotOSCommand: ParsableCommand {
     @Flag
     var operatingSystems: [OperatingSystem] = []
 
-    @Flag var undo: Bool = false
+    @Flag(help: "Remove the compiler directive if it exists in the file(s)")
+    var undo: Bool = false
 
     @OptionGroup var options: PathFileOptions
 
     var processor: CommandProcessor = .init()
-
-    var topLine: String {
-        var ifCommand = ""
-        if operatingSystems.count > 1 {
-            for (index, os) in operatingSystems.enumerated() {
-                if index == 0 {
-                    ifCommand = "#if !os(\(os.rawValue)) "
-                } else {
-                    ifCommand = ifCommand + "&& !os(\(os.rawValue)) "
-                }
-            }
-        } else {
-            ifCommand = "#if !os(\(operatingSystems.first!.rawValue))"
-        }
-        return ifCommand
-    }
-
-    var bottomLine: String {
-        return "#endif"
-    }
 
     mutating func run() {
         if operatingSystems.isEmpty {
@@ -117,7 +94,9 @@ struct NotOSCommand: ParsableCommand {
             return
         }
 
-        processor.execute(with: options.paths, firstLine: topLine, lastLine: bottomLine, undo: undo)
+        let cd = CompilerDirective(type: .if_not_os(operatingSystems))
+
+        processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: undo)
     }
 }
 
@@ -133,7 +112,8 @@ struct GenericCommand: ParsableCommand {
     @Option(help: "Bottom line")
     var bottom: String
 
-    @Flag var undo: Bool = false
+    @Flag(help: "Remove the top and bottom lines if such exist in the file(s)")
+    var undo: Bool = false
 
     @OptionGroup var options: PathFileOptions
 

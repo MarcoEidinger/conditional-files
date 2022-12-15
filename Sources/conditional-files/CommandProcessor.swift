@@ -1,15 +1,15 @@
 import Foundation
 
 struct CommandProcessor: Decodable {
-    init(fileHandler: FileManagerFacade = RealFileAccessor()) {
+    init(fileHandler: FileManagerFacade = FileSystemAccessor()) {
         fm = fileHandler
     }
 
     init(from _: Decoder) throws {
-        fm = RealFileAccessor()
+        fm = FileSystemAccessor()
     }
 
-    var fm: FileManagerFacade = RealFileAccessor()
+    var fm: FileManagerFacade = FileSystemAccessor()
     func execute(with paths: [String],
                  firstLine: String,
                  lastLine: String,
@@ -31,6 +31,7 @@ struct CommandProcessor: Decodable {
     }
 }
 
+/// Abstraction to mock away the access to the filesystem in unit tests
 protocol FileManagerFacade: Decodable {
     func content(for file: URL) -> String?
 
@@ -39,7 +40,7 @@ protocol FileManagerFacade: Decodable {
     func save(_ fileContent: String, to file: URL)
 }
 
-struct RealFileAccessor: FileManagerFacade {
+struct FileSystemAccessor: FileManagerFacade {
     func content(for file: URL) -> String? {
         try? String(contentsOf: file)
     }

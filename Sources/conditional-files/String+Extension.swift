@@ -28,8 +28,12 @@ extension String {
         if lines.last == "" {
             lines.removeLast()
         }
-        lines.insert(firstLine, at: 0)
+        lines.insert(firstLine.trimmingTrailingWhiteSpaces(), at: 0)
         lines.append(lastLine)
         return lines.joined(separator: "\n")
+    }
+
+    func trimmingTrailingWhiteSpaces() -> String {
+        return replacingOccurrences(of: "\\s+$", with: "", options: .regularExpression)
     }
 }
