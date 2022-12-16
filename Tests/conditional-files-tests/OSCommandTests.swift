@@ -11,6 +11,9 @@ final class OSCommandTests: XCTestCase {
         command.undo = false
 
         XCTAssertThrowsError(try command.validate())
+        
+        command.operatingSystems = [.ios]
+        XCTAssertNoThrow(try command.validate())
     }
     
     func testBasicInsert() {
