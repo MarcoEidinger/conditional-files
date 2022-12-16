@@ -34,6 +34,28 @@ final class OSCommandTests: XCTestCase {
 
         XCTAssertEqual(stub.updatedFileContent, expectedOutput)
     }
+    
+    func testMultipleInsert() {
+        let input = ""
+        let expectedOutput = """
+        #if os(iOS) || os(watchOS)
+        #endif
+        """
+
+        let stub = FileManagerMock()
+        stub.originalFileContent = input
+
+        var command = OSCommand()
+        command.processor = CommandProcessor(fileHandler: stub)
+        command.operatingSystems = [.ios, .watchos]
+        command.options = PathFileOptions()
+        command.options.paths = ["fakePath"]
+        command.undo = false
+
+        command.run()
+
+        XCTAssertEqual(stub.updatedFileContent, expectedOutput)
+    }
 
     func testUndoOnNothing() {
         let input = "n/a"
