@@ -60,12 +60,13 @@ struct OSCommand: ParsableCommand {
 
     var processor: CommandProcessor = .init()
 
-    mutating func run() {
-        if operatingSystems.isEmpty {
-            print("Error: at least one operating system has to be specified through an respective flag.")
-            return
+    func validate() throws {
+        guard !operatingSystems.isEmpty else {
+            throw ValidationError("At least one operating system has to be specified through an respective flag.")
         }
-
+    }
+    
+    mutating func run() {
         let cd = CompilerDirective(type: .if_os(operatingSystems))
 
         processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: undo)
@@ -87,13 +88,14 @@ struct NotOSCommand: ParsableCommand {
     @OptionGroup var options: PathFileOptions
 
     var processor: CommandProcessor = .init()
+    
+    func validate() throws {
+        guard !operatingSystems.isEmpty else {
+            throw ValidationError("At least one operating system has to be specified through an respective flag.")
+        }
+    }
 
     mutating func run() {
-        if operatingSystems.isEmpty {
-            print("Error: at least one operating system has to be specified through an respective flag.")
-            return
-        }
-
         let cd = CompilerDirective(type: .if_not_os(operatingSystems))
 
         processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: undo)

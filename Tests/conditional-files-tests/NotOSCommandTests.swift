@@ -2,6 +2,17 @@
 import XCTest
 
 final class NotOSCommandTests: XCTestCase {
+    func testValidation() {
+        var command = NotOSCommand()
+        command.processor = CommandProcessor(fileHandler: FileManagerMock())
+        command.operatingSystems = [] // <== error
+        command.options = PathFileOptions()
+        command.options.paths = ["fakePath"]
+        command.undo = false
+
+        XCTAssertThrowsError(try command.validate())
+    }
+    
     func testBasicInsert() {
         let input = ""
         let expectedOutput = """
