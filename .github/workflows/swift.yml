@@ -19,4 +19,14 @@ jobs:
     - name: Build
       run: swift build -v
     - name: Run tests
-      run: swift test -v
+      run: swift test --enable-code-coverage
+    - name: Convert coverage files
+      run: |
+        xcrun llvm-cov export -format "lcov" \
+        .build/debug/conditional-filesPackageTests.xctest/Contents/MacOs/conditional-filesPackageTests \
+        -ignore-filename-regex="\/Tests\/" \
+        -instr-profile=.build/debug/codecov/default.profdata > info.lcov  
+    - name: Upload to codecov.io
+      uses: codecov/codecov-action@v3
+      with:
+        file: info.lcov
