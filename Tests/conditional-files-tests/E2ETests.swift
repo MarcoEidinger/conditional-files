@@ -25,7 +25,7 @@ final class E2ETest: XCTestCase {
         command.operatingSystems = [.ios]
         command.options = PathFileOptions()
         command.options.paths = [testFilePath]
-        command.undo = false
+        command.remove = false
 
         command.run()
 

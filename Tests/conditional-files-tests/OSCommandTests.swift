@@ -8,14 +8,14 @@ final class OSCommandTests: XCTestCase {
         command.operatingSystems = [] // <== error
         command.options = PathFileOptions()
         command.options.paths = ["fakePath"]
-        command.undo = false
+        command.remove = false
 
         XCTAssertThrowsError(try command.validate())
-        
+
         command.operatingSystems = [.ios]
         XCTAssertNoThrow(try command.validate())
     }
-    
+
     func testBasicInsert() {
         let input = ""
         let expectedOutput = """
@@ -31,13 +31,13 @@ final class OSCommandTests: XCTestCase {
         command.operatingSystems = [.ios]
         command.options = PathFileOptions()
         command.options.paths = ["fakePath"]
-        command.undo = false
+        command.remove = false
 
         command.run()
 
         XCTAssertEqual(stub.updatedFileContent, expectedOutput)
     }
-    
+
     func testMultipleInsert() {
         let input = ""
         let expectedOutput = """
@@ -53,7 +53,7 @@ final class OSCommandTests: XCTestCase {
         command.operatingSystems = [.ios, .watchos]
         command.options = PathFileOptions()
         command.options.paths = ["fakePath"]
-        command.undo = false
+        command.remove = false
 
         command.run()
 
@@ -71,7 +71,7 @@ final class OSCommandTests: XCTestCase {
         command.operatingSystems = [.ios]
         command.options = PathFileOptions()
         command.options.paths = ["fakePath"]
-        command.undo = true
+        command.remove = true
 
         command.run()
 
@@ -95,7 +95,7 @@ final class OSCommandTests: XCTestCase {
         command.operatingSystems = [.ios]
         command.options = PathFileOptions()
         command.options.paths = ["fakePath"]
-        command.undo = true
+        command.remove = true
 
         command.run()
 

@@ -19,7 +19,7 @@ final class GenericCommandTests: XCTestCase {
         command.bottom = "bottom"
         command.options = PathFileOptions()
         command.options.paths = ["fakePath"]
-        command.undo = false
+        command.remove = false
 
         command.run()
 

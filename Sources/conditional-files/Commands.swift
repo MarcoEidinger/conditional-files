@@ -54,7 +54,7 @@ struct OSCommand: ParsableCommand {
     var operatingSystems: [OperatingSystem] = []
 
     @Flag(help: "Remove the compiler directive if it exists in the file(s)")
-    var undo: Bool = false
+    var remove: Bool = false
 
     @OptionGroup var options: PathFileOptions
 
@@ -65,11 +65,11 @@ struct OSCommand: ParsableCommand {
             throw ValidationError("At least one operating system has to be specified through an respective flag.")
         }
     }
-    
+
     mutating func run() {
         let cd = CompilerDirective(type: .if_os(operatingSystems))
 
-        processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: undo)
+        processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: remove)
     }
 }
 
@@ -83,12 +83,12 @@ struct NotOSCommand: ParsableCommand {
     var operatingSystems: [OperatingSystem] = []
 
     @Flag(help: "Remove the compiler directive if it exists in the file(s)")
-    var undo: Bool = false
+    var remove: Bool = false
 
     @OptionGroup var options: PathFileOptions
 
     var processor: CommandProcessor = .init()
-    
+
     func validate() throws {
         guard !operatingSystems.isEmpty else {
             throw ValidationError("At least one operating system has to be specified through an respective flag.")
@@ -98,7 +98,7 @@ struct NotOSCommand: ParsableCommand {
     mutating func run() {
         let cd = CompilerDirective(type: .if_not_os(operatingSystems))
 
-        processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: undo)
+        processor.execute(with: options.paths, firstLine: cd.topLine, lastLine: cd.bottomLine, undo: remove)
     }
 }
 
@@ -115,13 +115,52 @@ struct GenericCommand: ParsableCommand {
     var bottom: String
 
     @Flag(help: "Remove the top and bottom lines if such exist in the file(s)")
-    var undo: Bool = false
+    var remove: Bool = false
 
     @OptionGroup var options: PathFileOptions
 
     var processor: CommandProcessor = .init()
 
     mutating func run() {
-        processor.execute(with: options.paths, firstLine: top, lastLine: bottom, undo: undo)
+        processor.execute(with: options.paths, firstLine: top, lastLine: bottom, undo: remove)
+    }
+}
+
+enum FindCommandError: Error {
+    case notFound
+}
+
+struct FindCommand: ParsableCommand {
+    static var configuration = CommandConfiguration(
+        commandName: "find",
+        abstract: "Find conditional files starting with #if and ending with #endif and print out their paths."
+    )
+
+    @OptionGroup var options: PathFileOptions
+
+    var processor: CommandProcessor = .init()
+
+    mutating func run() throws {
+        let files = processor.findFilesWithCompilerDirective(in: options.paths)
+        if files.isEmpty {
+            throw FindCommandError.notFound
+        } else {
+            _ = files.map { print($0.absoluteString.deletingPrefix("file://")) }
+        }
+    }
+}
+
+struct RemoveTopCompilerDirectiveCommand: ParsableCommand {
+    static var configuration = CommandConfiguration(
+        commandName: "remove",
+        abstract: "Remove compiler directives from conditional files (i.e. starting with #if and ending with #endif)"
+    )
+
+    @OptionGroup var options: PathFileOptions
+
+    var processor: CommandProcessor = .init()
+
+    mutating func run() {
+        processor.removeCompilerDirective(in: options.paths)
     }
 }

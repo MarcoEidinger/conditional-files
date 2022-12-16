@@ -29,6 +29,37 @@ struct CommandProcessor: Decodable {
             }
         }
     }
+
+    func findFilesWithCompilerDirective(in paths: [String]) -> [URL] {
+        var conditionalFiles: [URL] = []
+
+        let files = fm.getFiles(for: paths, in: FileManager.default.currentDirectoryPath)
+
+        for fileURL in files {
+            guard let fileContent = fm.content(for: fileURL) else { continue }
+            var lines = fileContent.components(separatedBy: "\n")
+            if lines.last == "" {
+                lines.removeLast()
+            }
+            guard let first = lines.first, let last = lines.last else { continue }
+            if first.trimmingCharacters(in: .whitespaces).starts(with: "#if") && last.trimmingCharacters(in: .whitespaces).starts(with: "#endif") {
+                conditionalFiles.append(fileURL)
+            }
+        }
+
+        return conditionalFiles
+    }
+
+    func removeCompilerDirective(in paths: [String]) {
+        let files = findFilesWithCompilerDirective(in: paths)
+
+        for fileURL in files {
+            guard let fileContent = fm.content(for: fileURL) else { continue }
+            if let updatedFileContent = fileContent.deleteFirstAndLastLine() {
+                fm.save(updatedFileContent, to: fileURL)
+            }
+        }
+    }
 }
 
 /// Abstraction to mock away the access to the filesystem in unit tests
