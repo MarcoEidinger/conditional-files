@@ -14,6 +14,10 @@ let package = Package(
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ]
         ),
-        .testTarget(name: "conditional-files-tests", dependencies: ["conditional-files"]),
+        .testTarget(
+            name: "conditional-files-tests",
+            dependencies: ["conditional-files"],
+            resources: [.copy("TestData")]
+        ),
     ]
 )
