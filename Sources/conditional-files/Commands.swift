@@ -119,14 +119,6 @@ struct GenericCommand: ParsableCommand {
 
     var processor: CommandProcessor = .init()
 
-    var topLine: String {
-        top
-    }
-
-    var bottomLine: String {
-        bottom
-    }
-
     mutating func run() {
         processor.execute(with: options.paths, firstLine: top, lastLine: bottom, undo: undo)
     }
