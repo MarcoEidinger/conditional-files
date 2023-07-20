@@ -8,6 +8,7 @@ enum OperatingSystem: String, EnumerableFlag {
     case tvos = "tvOS"
     case linux = "Linux"
     case windows = "Windows"
+    case visionOS = "xrOS"
 }
 
 struct PathFileOptions: ParsableArguments {
